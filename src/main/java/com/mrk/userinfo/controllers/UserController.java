@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mrk.userinfo.dto.AuthRequest;
 import com.mrk.userinfo.dto.UserDTO;
 import com.mrk.userinfo.exception.UserNotfoundException;
 import com.mrk.userinfo.service.UserService;
@@ -47,5 +48,11 @@ public class UserController {
 		}
 
 		return response;
+	}
+
+	@PostMapping("/login")
+	public ResponseEntity<String> login(@RequestBody AuthRequest request) {
+		String token = service.login(request);
+		return ResponseEntity.ok(token);
 	}
 }

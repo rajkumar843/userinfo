@@ -20,5 +20,6 @@ public class UserEntity {
 	private String userPassword;
 	private String address;
 	private String city;
+	private String role;
 
 }
