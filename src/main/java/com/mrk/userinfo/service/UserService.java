@@ -59,8 +59,21 @@ public class UserService {
 				request.getUserPassword(),
 				user.getUserPassword());
 
+		/*
+		 * if (matched) { return jwtService.generateToken(user.getUserName()); }
+		 */
 		if (matched) {
-			return jwtService.generateToken(user.getUserName());
+			/*
+			 * return jwtService.generateToken( user.getUserName(), user.getRole());
+			 */
+			 String token = jwtService.generateToken(
+		                user.getUserName(),
+		                user.getRole());
+
+		        System.out.println("ROLE = " +
+		                jwtService.extractRole(token));
+
+		        return token;
 		}
 		throw new RuntimeException("Invalid Credentials");
 	}
