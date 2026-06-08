@@ -55,4 +55,19 @@ public class UserController {
 		String token = service.login(request);
 		return ResponseEntity.ok(token);
 	}
+
+	@GetMapping("/admin/dashboard")
+	public String adminDashboard() {
+		return "Welcome Admin";
+	}
+
+	@GetMapping("/manager/dashboard")
+	public String managerDashboard() {
+		return "Welcome Manager";
+	}
+
+	@GetMapping("/user/profile")
+	public String userProfile() {
+		return "Welcome User";
+	}
 }
