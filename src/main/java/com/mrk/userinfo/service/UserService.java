@@ -9,8 +9,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.mrk.userinfo.dto.AuthRequest;
+import com.mrk.userinfo.dto.UserCreatedEvent;
 import com.mrk.userinfo.dto.UserDTO;
 import com.mrk.userinfo.entity.UserEntity;
+import com.mrk.userinfo.kafka.UserProducer;
 import com.mrk.userinfo.mapper.UserMapper;
 import com.mrk.userinfo.repo.UserRepo;
 
@@ -26,6 +28,9 @@ public class UserService {
 	@Autowired
 	private JwtService jwtService;
 
+	@Autowired
+	private UserProducer userProducer;
+
 	public UserDTO adduser(UserDTO dto) {
 		/*
 		 * UserEntity savedUser
@@ -37,6 +42,13 @@ public class UserService {
 		// PASSWORD ENCRYPTION
 		entity.setUserPassword(encoder.encode(entity.getUserPassword()));
 		UserEntity savedUser = repo.save(entity);
+		//kafka 
+		UserCreatedEvent event = new UserCreatedEvent(savedUser.getUserId(), savedUser.getUserName(),
+				savedUser.getRole());
+
+		userProducer.sendMessage("user-topic", event);
+
+		System.out.println("Event Published : " + event);
 		return UserMapper.INSTANCE.mapUserToUserDTo(savedUser);
 
 	}
@@ -48,16 +60,13 @@ public class UserService {
 		}
 		return ResponseEntity.notFound().build();
 	}
-	
 
 	public String login(AuthRequest request) {
 
 		UserEntity user = repo.findByUserName(request.getUserName())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		boolean matched = encoder.matches(
-				request.getUserPassword(),
-				user.getUserPassword());
+		boolean matched = encoder.matches(request.getUserPassword(), user.getUserPassword());
 
 		/*
 		 * if (matched) { return jwtService.generateToken(user.getUserName()); }
@@ -66,14 +75,11 @@ public class UserService {
 			/*
 			 * return jwtService.generateToken( user.getUserName(), user.getRole());
 			 */
-			 String token = jwtService.generateToken(
-		                user.getUserName(),
-		                user.getRole());
+			String token = jwtService.generateToken(user.getUserName(), user.getRole());
 
-		        System.out.println("ROLE = " +
-		                jwtService.extractRole(token));
+			System.out.println("ROLE = " + jwtService.extractRole(token));
 
-		        return token;
+			return token;
 		}
 		throw new RuntimeException("Invalid Credentials");
 	}
